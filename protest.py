@@ -21,9 +21,7 @@ logging = False
 
 def randomRound(number):
 	rounding, integer = math.modf(number)
-	output = integer if random.random() > rounding else integer + 1
-	if logging: 
-		print("Rounded " + str(number) + " randomly to " + str(output))
+	output = int(integer if random.random() > rounding else integer + 1)
 	return output
 
 class protestSim():
@@ -49,27 +47,103 @@ class protestSim():
 		self.remainingBanishes = self.banishes
 		self.olfactionUsed = False
 		self.remainingClovers = self.clovers
+		self.remainingBanishes = self.remainingBanishes
 		self.remainingCocktails = self.whatshisnames
-		self.lighters = 0
+		self.lighter = False
 		random.seed()
 	
 	def rollNC(self):
 		return (random.randint(1, 100) > (90 - self.noncom))
 	
 	def runAdv(self):
+		if logging:
+			print("Starting turn " + str(self.turnsspent) + " with " + str(self.protesters) + " protesters left")
 	#returns true if adventure spent
 		if (self.turnsspent % 7 == 0):
+			if logging:
+				print("Mercy noncombat")
 			return self.runNCAdv()
 		elif (self.remainingClovers > 0):
+			if logging:
+				print("Clover used. " + str(self.remainingClovers - 1) + " clovers remaining.")
 			return self.runCloverNC()
 		elif (self.rollNC()):
+			if logging:
+				print("Rolled Noncombat")
 			return self.runNCAdv()
 		else:
+			if logging:
+				print("Rolled Combat")
 			return self.runCombatAdv()
 			
-	def runCombatAdv(self):
-		self.protesters -= 1
+	def fightNotCultist(self, notcultist):
+		if self.remainingBanishes > 0:
+			self.remainingBanishes -= 1
+			self.zoneMonsters.remove(notcultist)
+			if logging:
+				print("Banished " + notcultist + ", " + str(self.remainingBanishes) + " banishes left")
+			return False
+		elif self.lighter:
+			self.lighter = False
+			litUp = random.randint(6, 8)
+			if logging:
+				print("Set " + str(litUp) + " protesters on fire with lighter")
+			self.protesters -= litUp
+			return True
+		else:
+			self.protesters -= 1
+			if logging:
+				print("Beat up " + notcultist)
+			return True
+			
+	def fightCultist(self):
+		if not self.olfactionUsed:
+			self.olfactionUsed = True
+			for i in range(2 + self.nonolfactcopies):
+				self.zoneMonsters.append("Cultist")
+			if logging:
+				print("Used all available olfacts on Cultist")
+		if self.lighter:
+			self.lighter = False
+			litUp = random.randint(6, 8)
+			if logging:
+				print("Set " + str(litUp) + " protesters (including cultist) on fire with lighter")
+			self.protesters -= litUp
+			return True
+		else:
+			self.protesters -= 1
+			if logging:
+				print("Beat up a cultist")
+		if 15 * (100 + self.itemdrop) > random.randint(1, 10000):
+			self.lighter = True
+			if logging:
+				print("Found a lighter!")
+			
 		return True
+			
+			
+	def runCombatAdv(self):
+		reroll = True
+		adv = ""
+		while reroll:
+			reroll = False
+			adv = random.choice(self.zoneMonsters)
+			if logging:
+				print("Rolled " + adv + " as monster")
+			for monster in self.comQueue:
+				if (monster == adv) and (random.randint(1, 4) > 1) and not (self.olfactionUsed and self.olfaction and adv == "Cultist"):
+					reroll = True
+					if logging:
+						print("Rerolling!")
+					break
+		self.comQueue.append(adv)
+		self.comQueue = self.comQueue[-5:]
+		if logging:
+			print("Locked in. Combat queue is now " + str(self.comQueue))
+		if adv == "Cultist":
+			return self.fightCultist()
+		else:
+			return self.fightNotCultist(adv)
 	
 	def runNCAdv(self):
 		reroll = True
@@ -86,8 +160,9 @@ class protestSim():
 						print("Rerolling!")
 					break
 		self.ncomQueue.append(adv)
+		self.ncomQueue = self.ncomQueue[-5:]
 		if logging:
-			print("Locked in. Noncombat queue is now " + self.ncomQueue)
+			print("Locked in. Noncombat queue is now " + str(self.ncomQueue))
 		if adv == "benchWarrant":
 			return self.runBenchWarrant()
 		if adv == "amBush":
@@ -99,29 +174,51 @@ class protestSim():
 	
 	def runBenchWarrant(self):
 		rolled = self.benchWarrantProtesters()
+		if logging:
+			print("Used " + str(self.sleaze) + " sleaze to creep out " + str(rolled) + " protesters")
 		self.protesters -= rolled
 		return True
 	
 	def runAmBush(self):
+		if logging:
+			print("Scared off " + str(self.amBushProtesters()) + " protesters")
 		self.protesters -= self.amBushProtesters()
 		return True
 	
 	def runFireAbove(self):
 		self.protesters -= self.fireAboveProtesters()
 		self.remainingCocktails -= 1
+		if logging:
+			if self.remainingCocktails >= 0:
+				print("Used a Flamin' Whasthisname to light up 10 protesters. " + str(self.remainingCocktails) + " Whatshisnames remaining.")
+			else:
+				print("Lit up 3 protesters. ")
 		return True
 		
 	def runCloverNC(self):
 		self.remainingClovers -= 1
+		if logging:
+			print("Choosing clover noncombat")
+			print("Bench Warrant will creep out minimum of " + str(self.pessimisticBenchWarrantProtesters()))
+			print("AmBush will scare " + str(self.amBushProtesters()))
+			print("Fire Above will burn " + str(self.fireAboveProtesters()))
 		if self.amBushProtesters() > self.pessimisticBenchWarrantProtesters():
 			if self.amBushProtesters() > self.fireAboveProtesters():
+				if logging:
+					print("Choosing Bush")
 				return self.runAmBush()
 			else:
+				if logging:
+					print("Choosing Fire")
 				return self.runFireAbove()
 		else: 
 			if self.pessimisticBenchWarrantProtesters() >= self.fireAboveProtesters():
+				if logging:
+					print("Choosing Bench")
 				return self.runBenchWarrant()
 			else:
+				if logging:
+					print("Choosing Fire")
 				return self.runFireAbove()
 	
 	def benchWarrantProtesters(self):
@@ -131,7 +228,7 @@ class protestSim():
 		return max(3, math.floor(math.sqrt(self.sleaze)))
 		
 	def amBushProtesters(self):
-		return max(3, self.lynyrdness)
+		return 3 + self.lynyrdness
 		
 	def fireAboveProtesters(self):
 		return 10 if self.remainingCocktails > 0 else 3
@@ -149,7 +246,7 @@ class protestSim():
 			print("Zeppelin Mob Cleared in " + str(self.turnsspent) + " turns")
 		return self.turnsspent
 	
-	def runSimulations(self, runcount = 5000):
+	def runSimulations(self, runcount = 20000):
 		runs = []
 		for i in range(runcount):
 			runs.append(self.runZeppelinMob())
