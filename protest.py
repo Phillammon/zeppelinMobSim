@@ -99,7 +99,7 @@ class protestSim():
 	def fightCultist(self):
 		if not self.olfactionUsed:
 			self.olfactionUsed = True
-			for i in range(2 + self.nonolfactcopies):
+			for i in range((2 if self.olfaction else 0) + self.nonolfactcopies):
 				self.zoneMonsters.append("Cultist")
 			if logging:
 				print("Used all available olfacts on Cultist")
@@ -252,4 +252,15 @@ class protestSim():
 			runs.append(self.runZeppelinMob())
 		return [statistics.mean(runs), statistics.harmonic_mean(runs), statistics.median(runs), statistics.pstdev(runs)]
 		
-print(protestSim().runSimulations())
+print(
+	protestSim(
+		itemdrop = 100, 	# Your + Item Drop percent, expressed as an integer (+100% = 100, etc)
+		clovers = 3, 		# The number of clovers (and semirares, if available) you are devoting to the mob
+		noncom = 10, 		# Your +NC%, expressed as an integer. If you have +Combat, set this negative
+		sleaze = 69, 		# Your combined sleaze damage plus sleaze spell damage
+		olfaction = True, 	# True if transcendent olfaction is available (2 copies and no queue rejection)
+		banishes = 2, 		# Number of available banishes (assumed to be free runaways lasting for the whole zone)	
+		nonolfactcopies = 2,# Number of non-Transcendent Olfaction copies of a monster you can add to the zone (Gallapagosian Call, Offer Latte, etc)
+		whatshisnames = 1,  # Number of available flaming whatshisnames
+		lynyrdness = 3		# 3 for lynyrd musk, +5 for each distinct lynyrdskin gear worn
+	).runSimulations())
