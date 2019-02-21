@@ -41,7 +41,7 @@ class protestSim():
 		self.zoneMonsters = ["Cultist", "Eagle", "Woodsman", "Pilot", "Skinner"]
 		self.zoneNCs = ["benchWarrant", "amBush", "fireAbove"]
 		self.protesters = 80
-		self.turnsspent = 1 #Too Much Humanity
+		self.turnsspent = 0
 		self.remainingBanishes = self.banishes
 		self.olfactionUsed = False
 		self.remainingClovers = self.clovers
@@ -132,7 +132,6 @@ class protestSim():
 				reroll = True
 				if logging:
 					print("> > > > Rejected, rerolling!")
-				break
 		self.comQueue.append(adv)
 		self.comQueue = self.comQueue[-5:]
 		if logging:
@@ -154,7 +153,6 @@ class protestSim():
 				reroll = True
 				if logging:
 					print("> > > > Rejected, rerolling!")
-				break
 		self.ncomQueue.append(adv)
 		self.ncomQueue = self.ncomQueue[-5:]
 		if logging:
@@ -233,14 +231,13 @@ class protestSim():
 		self.prepareRun()
 		if logging:
 			print("> Starting turn 1 with 80 protesters left")
-			print("> Forced Noncombat adventure: Too Much Humanity")
+			print("> > Forced Noncombat adventure: Too Much Humanity")
 		while self.protesters > 0:
 			if self.runAdv():
 				self.turnsspent += 1
-		self.turnsspent += 1 #not so much with the humanity
 		if logging:
 			print("> Starting turn " + str(self.turnsspent) + " with no protesters left")
-			print("> Forced Noncombat adventure: Not So Much With The Humanity")
+			print("> > Forced Noncombat adventure: Not So Much With The Humanity")
 			print("> Zeppelin Mob Cleared in " + str(self.turnsspent) + " turns")
 		return self.turnsspent
 	
