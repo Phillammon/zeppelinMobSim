@@ -57,7 +57,7 @@ class protestSim():
 		if logging:
 			print("> Starting turn " + str(self.turnsspent + 1) + " with " + str(self.protesters) + " protesters left")
 	#returns true if adventure spent
-		if (self.turnsspent % 7 == 0):
+		if (self.turnsspent % 7 == 6):
 			if logging:
 				print("> > Mercy noncombat")
 			return self.runNCAdv()
